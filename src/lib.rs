@@ -13,6 +13,8 @@ use crate::functions::mongodbclient::connect;
 
 mod logger;
 mod mongo;
+mod functions;
+mod tests;
 
 #[lua_function]
 unsafe fn hello_world(lua: gmod::lua::State) -> i32 {
