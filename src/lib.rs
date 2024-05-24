@@ -9,7 +9,7 @@ use gmod::lua::LuaNumber;
 use logger::log;
 use logger::LogLevel;
 
-use crate::functions::mongodbclient::connect;
+use crate::functions::mongodbclient::new_client;
 
 mod logger;
 mod mongo;
@@ -52,11 +52,11 @@ unsafe fn gmod13_open(lua: gmod::lua::State) -> i32 {
     lua.push_function(hello_world);
     lua.set_global(lua_string!("hello_world"));
 
-    lua.new_metatable(lua_string!("MongoDBClient"));
+    lua.new_metatable(lua_string!("MongoDB"));
     lua.push_number(-1 as LuaNumber);
     lua.set_field(-2, lua_string!("__index"));
-    lua.push_function(connect);
-    lua.set_field(-2, lua_string!("Connect"));
+    lua.push_function(new_client);
+    lua.set_field(-2, lua_string!("Client"));
     lua.pop();
 
     return 0;
