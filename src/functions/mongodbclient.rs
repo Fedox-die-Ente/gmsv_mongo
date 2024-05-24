@@ -15,7 +15,7 @@ pub unsafe fn new_client(lua: gmod::lua::State) -> i32 {
 
 #[lua_function]
 pub unsafe fn get_database(lua: gmod::lua::State) -> i32 {
-    let connection_url = lua.get_field::<String>(1, lua_string!("connection_url")).unwrap();
+    let connection_url = lua.get_field(1, lua_string!("connection_url"));
     let database_name = lua.check_string(1);
 
     lua.push_string(&*database_name);
