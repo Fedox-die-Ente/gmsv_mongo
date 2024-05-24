@@ -52,12 +52,12 @@ unsafe fn gmod13_open(lua: gmod::lua::State) -> i32 {
     lua.push_function(hello_world);
     lua.set_global(lua_string!("hello_world"));
 
-    lua.new_metatable(lua_string!("MongoDB"));
+    lua.new_table();
     lua.push_number(-1 as LuaNumber);
     lua.set_field(-2, lua_string!("__index"));
     lua.push_function(new_client);
     lua.set_field(-2, lua_string!("Client"));
-    lua.pop();
+    lua.set_global(lua_string!("MongoDB"));
 
     return 0;
 }
