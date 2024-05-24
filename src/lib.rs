@@ -1,10 +1,8 @@
 #![feature(c_unwind)]
-
+#![allow(dead_code)]
 extern crate core;
 #[macro_use]
 extern crate gmod;
-
-use gmod::lua::LuaNumber;
 
 use logger::log;
 use logger::LogLevel;
@@ -14,6 +12,7 @@ use crate::functions::mongodbclient::new_client;
 mod logger;
 mod mongo;
 mod functions;
+
 mod tests;
 
 #[lua_function]
@@ -53,8 +52,6 @@ unsafe fn gmod13_open(lua: gmod::lua::State) -> i32 {
     lua.set_global(lua_string!("hello_world"));
 
     lua.new_table();
-    lua.push_number(-1 as LuaNumber);
-    lua.set_field(-2, lua_string!("__index"));
     lua.push_function(new_client);
     lua.set_field(-2, lua_string!("Client"));
     lua.set_global(lua_string!("MongoDB"));

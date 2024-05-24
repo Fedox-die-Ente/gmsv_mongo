@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use mongodb::{Client, Database};
 use mongodb::bson::Document;
 use mongodb::options::{ClientOptions, ServerApi, ServerApiVersion};
