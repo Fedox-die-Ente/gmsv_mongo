@@ -11,7 +11,7 @@
 <p>1. Download the correct file for your server operating system. You can execute the following console command to get the correct version.</p>
 
 ```
-lua_run print(jit.os jit.arch)
+lua_run print(jit.os, jit.arch)
 ```
 
 <p>2. Put the file in your <b>garrysmod/lua/bin</b> folder if it doesn't exists just create one.</p>
