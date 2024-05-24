@@ -25,8 +25,8 @@ require('mongo');
 
 Technologies used in the project:
 
-* gmod-rs
 * Rust
+* [gmod-rs](https://github.com/WilliamVenner/gmod-rs)
 
 <h2>🛡️ License:</h2>
 
