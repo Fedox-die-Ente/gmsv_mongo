@@ -2,8 +2,8 @@ use crate::functions::mongodbcollection::{delete, find, insert, update};
 
 #[lua_function]
 pub unsafe fn get_collection(lua: gmod::lua::State) -> i32 {
-    let connection_url = lua.get_field(1, lua_string!("connection_url"));
-    let database_name = lua.get_field(1, lua_string!("database_name"));
+    let connection_url = lua.get_field(1, lua_string!("_connection_url"));
+    let database_name = lua.get_field(1, lua_string!("_database_name"));
     let collection_name = lua.check_string(1);
 
     lua.push_string(&*collection_name);
