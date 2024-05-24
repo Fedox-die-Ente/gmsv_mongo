@@ -28,6 +28,13 @@ Technologies used in the project:
 
 * Rust
 * [gmod-rs](https://github.com/WilliamVenner/gmod-rs)
+* [mongodb](https://github.com/mongodb/mongo-rust-driver)
+* [tokio](https://docs.rs/tokio/1.37.0/tokio/index.html)
+* [serde](https://docs.rs/serde/latest/serde/)
+* [dotenv](https://docs.rs/dotenv/0.15.0/dotenv/)
+* [log](https://docs.rs/log/0.4.21/log/)
+* [termcolor](https://docs.rs/termcolor/1.4.1/termcolor/)
+* [futures](https://docs.rs/futures/0.3.30/futures/)
 
 <h2>🔨 Build project</h2>
 
