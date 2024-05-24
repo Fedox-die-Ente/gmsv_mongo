@@ -40,7 +40,7 @@ mod tests {
             age: 20,
         };
 
-        collection.insert_one(test, None).await.expect_err("Failed to insert");
+        collection.insert_one(test, None).await.expect("Failed to insert");
         collection.drop(None).await.expect("Failed to drop collection");
 
         Ok(())
@@ -60,7 +60,7 @@ mod tests {
         client_options.server_api = Some(server_api);
 
         let client = Client::with_options(client_options).unwrap();
-        
+
         Ok(())
     }
 }
