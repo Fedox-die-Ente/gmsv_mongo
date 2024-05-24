@@ -10,10 +10,15 @@ crate-type = ["cdylib"]
 opt-level = 1
 
 [dependencies]
-mongodb = "2.8.2"
-tokio = { version = "1.0.0", features = ["rt", "rt-multi-thread", "macros"] }
 gmod = { version = "*", features = ["gmcl"], default-features = false }
 termcolor = "1.4.1"
 dotenv = "0.15.0"
 log = "0.4.21"
-serde = { version = "1.0.202", features = ["derive"] }
+serde = "1.0.188"
+futures = "0.3.30"
+tokio = { version = "1.32.0", features = ["full"] }
+
+
+[dependencies.mongodb]
+version = "2.8.2"
+features = ["tokio-runtime"]
