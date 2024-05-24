@@ -31,7 +31,7 @@ Technologies used in the project:
 
 <h2>🛡️ License:</h2>
 
-This project is licensed under the MIT
+This project is licensed under the [AGPL-3.0](LICENSE)
 
 <h2>💖Like my work?</h2>
 
