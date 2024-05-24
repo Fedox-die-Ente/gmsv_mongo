@@ -7,16 +7,22 @@ use logger::log;
 use logger::LogLevel;
 
 mod logger;
+mod mongo;
 
 #[gmod13_open]
 fn gmod13_open(lua: gmod::lua::State) -> i32 {
-    log(LogLevel::Info, "GMSV_MONGO Binary loaded and ready.").expect("Failed to log.");
-    0
+    log(LogLevel::Info, "GMSV_MONGO Binary loaded and ready.")
+        .expect("Failed to log.");
+    return 0;
 }
+
 
 #[gmod13_close]
 fn gmod13_close(_lua: gmod::lua::State) -> i32 {
     println!("Goodbye from binary module!");
-    log(LogLevel::Info, "GMSV_MONGO Binary shutting down.").expect("Failed to log.");
-    0
+
+    log(LogLevel::Info, "GMSV_MONGO Binary shutting down.")
+        .expect("Failed to log.");
+    return 0;
 }
+
