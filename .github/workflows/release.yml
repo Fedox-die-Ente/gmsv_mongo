@@ -1,0 +1,84 @@
+name: Create Releases
+on:
+  push:
+    tags:
+      - 'release-*'
+jobs:
+  build-win32:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Rust
+        uses: actions/setup-rust@v1
+        with:
+          toolchain: stable
+      - name: Install MSVC
+        run: rustup toolchain install stable-x86_64-pc-windows-msvc
+      - name: Build
+        run: cargo build --release --target=i686-pc-windows-msvc
+      - name: Archive
+        run: 7z a -tzip target/release.zip target/release
+      - name: Upload Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: target/release.zip
+          asset_name: release-win32.zip
+          asset_content_type: application/zip
+  build-win64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Rust
+        uses: actions/setup-rust@v1
+        with:
+          toolchain: stable
+      - name: Build
+        run: cargo build --release --target=x86_64-pc-windows-msvc
+      - name: Archive
+        run: 7z a -tzip target/release.zip target/release
+      - name: Upload Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: target/release.zip
+          asset_name: release-win64.zip
+          asset_content_type: application/zip
+  build-linux32:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Rust
+        uses: actions/setup-rust@v1
+        with:
+          toolchain: stable
+      - name: Build
+        run: cargo build --release --target=i686-unknown-linux-gnu
+      - name: Archive
+        run: 7z a -tzip target/release.zip target/release
+      - name: Upload Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: target/release.zip
+          asset_name: release-linux32.zip
+          asset_content_type: application/zip
+  build-linux64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Rust
+        uses: actions/setup-rust@v1
+        with:
+          toolchain: stable
+      - name: Build
+        run: cargo build --release --target=x86_64-unknown-linux-gnu
+      - name: Archive
+        run: 7z a -tzip target/release.zip target/release
+      - name: Upload Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: target/release.zip
+          asset_name: release-linux64.zip
+          asset_content_type: application/zip
