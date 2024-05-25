@@ -15,8 +15,8 @@ use crate::functions::mongodbclient::{get_database, new_client};
 
 mod logger;
 mod mongo;
+mod udata;
 mod functions;
-
 mod tests;
 
 #[gmod_open]
@@ -27,13 +27,11 @@ unsafe fn open(l: LuaState) -> i32 {
 
     log(LogLevel::Info, &*log_message);
 
-
+    let lib = reg![
+        "Database" => get_database
+    ];
     luaL_newmetatable(l, cstr!("MongoDBClient"));
-    lua_pushnumber(l, -1 as LuaNumber);
-    lua_setfield(l, -2, cstr!("__index"));
-    lua_pushcfunction(l, get_database);
-    lua_setfield(l, -2, cstr!("Database"));
-    lua_pop(l, 1);
+    luaL_register(l, std::ptr::null(), lib.as_ptr());
 
     luaL_newmetatable(l, cstr!("MongoDBDatabase"));
     lua_pushnumber(l, -1 as LuaNumber);
