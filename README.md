@@ -27,7 +27,7 @@ require('mongo');
 Technologies used in the project:
 
 * Rust
-* [gmod-rs](https://github.com/WilliamVenner/gmod-rs)
+* [rglua](https://github.com/Vurv78/rglua)
 * [mongodb](https://github.com/mongodb/mongo-rust-driver)
 * [tokio](https://docs.rs/tokio/1.37.0/tokio/index.html)
 * [serde](https://docs.rs/serde/latest/serde/)
