@@ -1,6 +1,7 @@
 use std::os::raw::c_void;
 
-use rglua::lua::{lua_newuserdata, LuaState, LuaType, Userdata};
+use mongodb::Client;
+use rglua::lua::{lua_newuserdata, LuaState};
 use rglua::prelude::{lua_setmetatable, luaL_checkstring, luaL_checkudata, luaL_getmetatable};
 
 use crate::logger::{log, LogLevel};
@@ -14,12 +15,9 @@ pub fn new_client(l: LuaState) -> i32 {
     let runtime = tokio::runtime::Runtime::new().unwrap();
     let client = runtime.block_on(connect_to_db(&*connection_url)).unwrap();
 
-    let ptr = lua_newuserdata(l, std::mem::size_of::<Userdata>());
+    let ptr = lua_newuserdata(l, std::mem::size_of::<Client>());
 
     unsafe {
-        let ty = std::ptr::addr_of_mut!((*ptr).typ);
-        ty.write(LuaType::Userdata);
-
         let data = std::ptr::addr_of_mut!((*ptr).data);
         data.write(Box::into_raw(Box::new(client)) as *mut c_void);
     }
@@ -31,28 +29,15 @@ pub fn new_client(l: LuaState) -> i32 {
 }
 
 #[lua_function]
-pub fn get_database(_l: LuaState) -> i32 {
+pub fn get_database(l: LuaState) -> i32 {
     let client = unsafe {
-        let client = luaL_checkudata(_l, 1, cstr!("MongoDBClient")) as *mut Userdata;
-        let client = (*client).data as *mut mongodb::Client;
-        &*client
+        let ptr = luaL_checkudata(l, 1, cstr!("MongoDBClient")) as *mut Client;
+        Box::from_raw(ptr)
     };
 
-    let database_name = rstr!(luaL_checkstring(_l, 2));
-    let db = client.database(&*database_name);
-
-    let ptr = lua_newuserdata(_l, std::mem::size_of::<Userdata>());
-
-    unsafe {
-        let ty = std::ptr::addr_of_mut!((*ptr).typ);
-        ty.write(LuaType::Userdata);
-
-        let data = std::ptr::addr_of_mut!((*ptr).data);
-        data.write(Box::into_raw(Box::new(db)) as *mut c_void);
-    }
-
-    luaL_getmetatable(_l, cstr!("MongoDBDatabase"));
-    lua_setmetatable(_l, -2);
+    let database_name = rstr!(luaL_checkstring(l, 2));
+    log(LogLevel::Info, &format!("Retrieved database '{}'", database_name));
 
     return 1;
 }
+
