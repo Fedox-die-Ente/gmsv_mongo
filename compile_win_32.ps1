@@ -4,7 +4,7 @@ function Write-BoldMessage {
         [string]$Color
     )
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Write-Host "`n[ $timestamp ] $Message" -ForegroundColor $Color
+    Write-Host "[ $timestamp ] $Message" -ForegroundColor $Color
     Write-Host "`n"
 }
 
