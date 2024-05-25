@@ -15,7 +15,6 @@ use crate::functions::mongodbclient::{get_database, new_client};
 
 mod logger;
 mod mongo;
-mod udata;
 mod functions;
 mod tests;
 
