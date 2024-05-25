@@ -4,16 +4,13 @@ function Write-BoldMessage {
         [string]$Color
     )
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Write-Host "[ $timestamp ] " -NoNewline
-    Write-Host $Message -ForegroundColor $Color -NoNewline
-    Write-Host -NoNewline
-    Write-Host -NoNewline
+    Write-Host "`n[ $timestamp ] $Message" -ForegroundColor $Color
+    Write-Host "`n"
 }
 
 if (Test-Path gmsv_mongo_win32.dll)
 {
     Write-BoldMessage "Removing gmsv_mongo_win32.dll" "Red"
-    Write-Host -NoNewline
     rm gmsv_mongo_win32.dll
 }
 
