@@ -6,6 +6,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
 
     use crate::logger::{log, LogLevel};
+    use crate::mongo::connect_to_db;
 
     #[derive(Serialize, Deserialize, Debug)]
     struct TestType {
@@ -46,8 +47,8 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn test_connect() -> mongodb::error::Result<()> {
+    #[test]
+    fn test_connect() -> mongodb::error::Result<()> {
         dotenv().ok();
 
         let connection_string = dotenv::var("MONGO_CONNECTION_STRING").expect("MONGODB_URI must be set");
@@ -55,11 +56,10 @@ mod tests {
             panic!("MONGO_CONNECTION_STRING must be set");
         }
 
-        let mut client_options = ClientOptions::parse(connection_string).await.expect("Failed to parse connection string.");
-        let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
-        client_options.server_api = Some(server_api);
-
-        let client = Client::with_options(client_options).unwrap();
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let client = runtime.block_on(connect_to_db(&*connection_string)).unwrap();
+        let admin_db = client.database("admin");
+        assert_eq!(admin_db.name(), "admin");
 
         Ok(())
     }
