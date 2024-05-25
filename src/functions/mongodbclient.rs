@@ -1,7 +1,6 @@
-use mongodb::Client;
 use crate::logger::{log, LogLevel};
 use crate::mongo::connect_to_db;
-use crate::{get_metatable_index, IDENT_MONGODBCLIENT, MONGO_METATABLES};
+use crate::{get_metatable_index, IDENT_MONGODBCLIENT};
 
 #[lua_function]
 pub unsafe fn new_client(lua: gmod::lua::State) -> i32 {

@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use crate::functions::mongodbcollection::{delete, find, insert, update};
 use crate::logger::{log, LogLevel};
 
 #[lua_function]
