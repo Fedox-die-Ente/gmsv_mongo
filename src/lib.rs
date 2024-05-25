@@ -4,11 +4,7 @@ extern crate core;
 #[macro_use]
 extern crate gmod;
 
-use std::collections::HashMap;
-use std::sync::Mutex;
-
 use gmod::lua::LuaNumber;
-use lazy_static::lazy_static;
 
 use logger::log;
 use logger::LogLevel;
@@ -20,19 +16,6 @@ mod mongo;
 mod functions;
 
 mod tests;
-
-lazy_static! {
-    static ref MONGO_METATABLES: Mutex<HashMap<String, i32>> = Mutex::new(HashMap::new());
-
-    static ref IDENT_MONGODBCLIENT: String = "MongoDBClient".to_string();
-    static ref IDENT_MONGODBDATABASE: String = "MongoDBDatabase".to_string();
-    static ref IDENT_MONGODBCOLLECTION: String = "MongoDBCollection".to_string();
-}
-
-pub fn get_metatable_index(metatable: String) -> i32 {
-    let metatables = MONGO_METATABLES.lock().unwrap();
-    return metatables.get(&metatable).unwrap().clone();
-}
 
 #[lua_function]
 unsafe fn hello_world(lua: gmod::lua::State) -> i32 {
@@ -70,22 +53,17 @@ unsafe fn gmod13_open(lua: gmod::lua::State) -> i32 {
     lua.push_function(hello_world);
     lua.set_global(lua_string!("hello_world"));
 
-    let mut metatables = MONGO_METATABLES.lock().unwrap();
-
     lua.new_metatable(lua_string!("MongoDBClient"));
-    metatables.insert(IDENT_MONGODBCLIENT.clone(), lua.get_top());
     lua.push_number(-1 as LuaNumber);
     lua.set_field(-2, lua_string!("__index"));
     lua.pop();
 
     lua.new_metatable(lua_string!("MongoDBDatabase"));
-    metatables.insert(IDENT_MONGODBDATABASE.clone(), lua.get_top());
     lua.push_number(-1 as LuaNumber);
     lua.set_field(-2, lua_string!("__index"));
     lua.pop();
 
     lua.new_metatable(lua_string!("MongoDBCollection"));
-    metatables.insert(IDENT_MONGODBCOLLECTION.clone(), lua.get_top());
     lua.push_number(-1 as LuaNumber);
     lua.set_field(-2, lua_string!("__index"));
     lua.pop();
@@ -94,8 +72,6 @@ unsafe fn gmod13_open(lua: gmod::lua::State) -> i32 {
     lua.push_function(new_client);
     lua.set_field(-2, lua_string!("Client"));
     lua.set_global(lua_string!("MongoDB"));
-
-    log(LogLevel::Debug, &*format!("Registered meta tables: {:?}", metatables));
 
     return 0;
 }
