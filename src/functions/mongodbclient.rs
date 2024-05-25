@@ -5,7 +5,6 @@ use rglua::prelude::{lua_setmetatable, luaL_checkstring, luaL_getmetatable};
 
 use crate::logger::{log, LogLevel};
 use crate::mongo::connect_to_db;
-use crate::udata::MongoDBClient;
 
 #[lua_function]
 pub fn new_client(l: LuaState) -> i32 {
@@ -22,7 +21,7 @@ pub fn new_client(l: LuaState) -> i32 {
         ty.write(LuaType::Userdata);
 
         let data = std::ptr::addr_of_mut!((*ptr).data);
-        data.write(Box::into_raw(Box::new(MongoDBClient::new(client))) as *mut c_void);
+        data.write(Box::into_raw(Box::new(client)) as *mut c_void);
     }
 
     luaL_getmetatable(l, cstr!("MongoDBClient"));
