@@ -2,12 +2,14 @@
 #![allow(dead_code)]
 extern crate core;
 #[macro_use]
-extern crate gmod;
+extern crate rglua;
 
-use gmod::lua::LuaNumber;
+use rglua::lua::LuaNumber;
+use rglua::prelude::*;
 
 use logger::log;
 use logger::LogLevel;
+use rglua::lua::LuaState;
 
 use crate::functions::mongodbclient::new_client;
 
@@ -17,68 +19,42 @@ mod functions;
 
 mod tests;
 
-#[lua_function]
-unsafe fn hello_world(lua: gmod::lua::State) -> i32 {
-    lua.get_global(lua_string!("print"));
-    lua.push_string("Hello, world!");
-    lua.call(1, 0);
-    return 0;
-}
-
-#[lua_function]
-unsafe fn mongo_dbclient(lua: gmod::lua::State) -> i32 {
-    let connection_string = match lua.get_string(1) {
-        Some(string) => string,
-        None => {
-            eprintln!("Error: Connection string not provided");
-            return -1;
-        }
-    };
-
-
-    let msg = format!("Connection string: {}", connection_string);
-    log(LogLevel::Debug, &*msg);
-
-    return 1;
-}
-
-#[gmod13_open]
-unsafe fn gmod13_open(lua: gmod::lua::State) -> i32 {
+#[gmod_open]
+unsafe fn open(l: LuaState) -> i32 {
     let cargo_name = env!("CARGO_PKG_NAME");
     let cargo_version = env!("CARGO_PKG_VERSION");
     let log_message = format!("Module '{} ({})' loaded and ready.", cargo_name, cargo_version);
 
     log(LogLevel::Info, &*log_message);
 
-    lua.push_function(hello_world);
-    lua.set_global(lua_string!("hello_world"));
 
-    lua.new_metatable(lua_string!("MongoDBClient"));
-    lua.push_number(-1 as LuaNumber);
-    lua.set_field(-2, lua_string!("__index"));
-    lua.pop();
+    luaL_newmetatable(l, cstr!("MongoDBClient"));
+    lua_pushnumber(l, -1 as LuaNumber);
+    lua_setfield(l, -2, cstr!("__index"));
+    lua_pop(l, 1);
 
-    lua.new_metatable(lua_string!("MongoDBDatabase"));
-    lua.push_number(-1 as LuaNumber);
-    lua.set_field(-2, lua_string!("__index"));
-    lua.pop();
+    luaL_newmetatable(l, cstr!("MongoDBDatabase"));
+    lua_pushnumber(l, -1 as LuaNumber);
+    lua_setfield(l, -2, cstr!("__index"));
+    lua_pop(l, 1);
 
-    lua.new_metatable(lua_string!("MongoDBCollection"));
-    lua.push_number(-1 as LuaNumber);
-    lua.set_field(-2, lua_string!("__index"));
-    lua.pop();
+    luaL_newmetatable(l, cstr!("MongoDBCollection"));
+    lua_pushnumber(l, -1 as LuaNumber);
+    lua_setfield(l, -2, cstr!("__index"));
+    lua_pop(l, 1);
 
-    lua.new_table();
-    lua.push_function(new_client);
-    lua.set_field(-2, lua_string!("Client"));
-    lua.set_global(lua_string!("MongoDB"));
+
+    lua_newtable(l);
+    lua_pushcfunction(l, new_client);
+    lua_setfield(l, -2, cstr!("Client"));
+    lua_setglobal(l, cstr!("MongoDB"));
 
     return 0;
 }
 
 
-#[gmod13_close]
-fn gmod13_close(_lua: gmod::lua::State) -> i32 {
+#[gmod_close]
+fn close(_l: LuaState) -> i32 {
     println!("Goodbye from binary module!");
 
     let cargo_name = env!("CARGO_PKG_NAME");

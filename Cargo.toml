@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 opt-level = 1
 
 [dependencies]
-gmod = { version = "*", features = ["gmcl"], default-features = false }
+rglua = { version = "*" }
 termcolor = "1.4.1"
 dotenv = "0.15.0"
 log = "0.4.21"
