@@ -26,7 +26,7 @@ require('mongo');
 
 Technologies used in the project:
 
-* Rust
+* [Rust](https://www.rust.de/startseite)
 * [rglua](https://github.com/Vurv78/rglua)
 * [mongodb](https://github.com/mongodb/mongo-rust-driver)
 * [tokio](https://docs.rs/tokio/1.37.0/tokio/index.html)
