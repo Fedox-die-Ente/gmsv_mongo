@@ -1,4 +1,7 @@
+use mongodb::Client;
 use crate::logger::{log, LogLevel};
+use crate::mongo::connect_to_db;
+use crate::{get_metatable_index, IDENT_MONGODBCLIENT, MONGO_METATABLES};
 
 #[lua_function]
 pub unsafe fn new_client(lua: gmod::lua::State) -> i32 {
@@ -6,9 +9,9 @@ pub unsafe fn new_client(lua: gmod::lua::State) -> i32 {
     let connection_url = lua.get_string(1).unwrap();
     log(LogLevel::Debug, &*format!("{}", connection_url));
 
-    lua.new_table();
-    lua.push_function(get_database);
-    lua.set_field(-2, lua_string!("GetDatabase"));
+    let client = connect_to_db(&*connection_url.to_string()).unwrap();
+
+    lua.new_userdata(client, Option::from(get_metatable_index(IDENT_MONGODBCLIENT.clone())));
 
     return 1;
 }

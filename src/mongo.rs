@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use futures::executor::block_on;
 use mongodb::{Client, Database};
 use mongodb::bson::Document;
 use mongodb::options::{ClientOptions, ServerApi, ServerApiVersion};
@@ -13,13 +14,13 @@ use crate::logger::{log, LogLevel};
 // ██████╔╝██║  ██║   ██║   ██║  ██║██████╔╝██║  ██║███████║███████╗
 // ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
 
-pub(crate) async fn connect_to_db(connection_string: &str) -> mongodb::error::Result<Client> {
+pub fn connect_to_db(connection_string: &str) -> mongodb::error::Result<Client> {
     if connection_string.is_empty() {
         log(LogLevel::Error, "MONGO_CONNECTION_STRING must be set");
         panic!("MONGO_CONNECTION_STRING must be set");
     }
 
-    let mut client_options = ClientOptions::parse(connection_string).await.expect("Failed to parse connection string.");
+    let mut client_options = block_on(ClientOptions::parse(connection_string)).unwrap();
     let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
     client_options.server_api = Some(server_api);
 
