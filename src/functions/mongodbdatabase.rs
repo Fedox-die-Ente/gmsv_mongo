@@ -3,7 +3,6 @@
 use mongodb::Client;
 use rglua::lua::LuaState;
 use rglua::prelude::{lua_pushlightuserdata, lua_setmetatable, lua_touserdata, luaL_checkstring, luaL_getmetatable};
-use tokio::runtime::Runtime;
 
 use crate::logger::{log, LogLevel};
 
@@ -21,7 +20,6 @@ fn get_client(l: LuaState) -> Result<Client, String> {
 
 #[lua_function]
 pub fn get_database(l: LuaState) -> i32 {
-    let rt = Runtime::new().unwrap();
     let client = get_client(l).unwrap();
 
     let database_name = rstr!(luaL_checkstring(l, 2));
@@ -29,10 +27,8 @@ pub fn get_database(l: LuaState) -> i32 {
 
     let db = client.database(database_name);
 
-    unsafe {
-        let db_ptr = Box::into_raw(Box::new(db));
-        lua_pushlightuserdata(l, db_ptr as *mut std::ffi::c_void);
-    }
+    let db_ptr = Box::into_raw(Box::new(db));
+    lua_pushlightuserdata(l, db_ptr as *mut std::ffi::c_void);
 
     luaL_getmetatable(l, cstr!("MongoDBDatabase"));
     lua_setmetatable(l, -2);
