@@ -1,4 +1,5 @@
 #![feature(c_unwind)]
+#![allow(dead_code)]
 extern crate core;
 #[macro_use]
 extern crate rglua;
@@ -11,7 +12,7 @@ use logger::LogLevel;
 
 use crate::functions::mongodbclient::new_client;
 use crate::functions::mongodbdatabase::get_database;
-use crate::functions::mongodbcollection::get_collection;
+use crate::functions::mongodbcollection::{create_collection, drop_collection, get_collection};
 
 mod logger;
 mod mongo;
@@ -35,9 +36,19 @@ unsafe fn open(l: LuaState) -> i32 {
     luaL_newmetatable(l, cstr!("MongoDBDatabase"));
     lua_pushvalue(l, -1);
     lua_setfield(l, -2, cstr!("__index"));
+
     lua_pushcfunction(l, get_collection);
     lua_setfield(l, -2, cstr!("Collection"));
 
+    lua_pushcfunction(l, drop_collection);
+    lua_setfield(l, -2, cstr!("DropCollection"));
+
+    lua_pushcfunction(l, create_collection);
+    lua_setfield(l, -2, cstr!("CreateCollection"));
+
+    luaL_newmetatable(l, cstr!("MongoDBCollection"));
+    lua_pushvalue(l, -1);
+    lua_setfield(l, -2, cstr!("__index"));
     lua_newtable(l);
     lua_pushcfunction(l, new_client);
     lua_setfield(l, -2, cstr!("Client"));
