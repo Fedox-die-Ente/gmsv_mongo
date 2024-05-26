@@ -2,7 +2,7 @@
 
 use mongodb::Client;
 use rglua::lua::LuaState;
-use rglua::prelude::{lua_touserdata, luaL_checkstring};
+use rglua::prelude::{lua_pushlightuserdata, lua_setmetatable, lua_touserdata, luaL_checkstring, luaL_getmetatable};
 use tokio::runtime::Runtime;
 
 use crate::logger::{log, LogLevel};

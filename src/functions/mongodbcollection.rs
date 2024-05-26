@@ -2,11 +2,11 @@
 
 use rglua::lua::{luaL_checkstring, LuaState};
 
+use crate::logger::{log, LogLevel};
+
 #[lua_function]
-pub unsafe fn get_collection(_l: LuaState) -> i32 {
-
+pub fn get_collection(l: LuaState) -> i32 {
     let collection_name = rstr!(luaL_checkstring(l, 2));
-
     log(LogLevel::Debug, &format!("Retrieving collection '{}'...", collection_name));
 
     1
