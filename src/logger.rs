@@ -22,7 +22,7 @@ pub(crate) fn log(level: LogLevel, message: &str) {
     };
 
     stdout.set_color(&color_spec).expect("Too many exceptions.");
-    write!(&mut stdout, "[{}] ", match level {
+    write!(&mut stdout, "gmsv_mongo | [{}] ", match level {
         LogLevel::Info => "INFO",
         LogLevel::Warning => "WARNING",
         LogLevel::Error => "ERROR",
