@@ -6,10 +6,8 @@ use crate::logger::{log, LogLevel};
 use crate::mongo::{create_client_options, create_mongo_client};
 
 fn send_client(l: LuaState, client: Client) {
-    unsafe {
-        let client_ptr = Box::into_raw(Box::new(client));
-        lua_pushlightuserdata(l, client_ptr as *mut std::ffi::c_void);
-    }
+    let client_ptr = Box::into_raw(Box::new(client));
+    lua_pushlightuserdata(l, client_ptr as *mut std::ffi::c_void);
 }
 
 #[lua_function]
