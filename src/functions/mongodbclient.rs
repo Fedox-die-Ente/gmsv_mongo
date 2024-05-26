@@ -1,10 +1,17 @@
 use mongodb::Client;
 use rglua::lua::LuaState;
-use rglua::prelude::{lua_call, lua_pushlightuserdata, lua_setmetatable, lua_touserdata, luaL_checkstring, luaL_getmetatable};
+use rglua::prelude::{lua_pushlightuserdata, lua_setmetatable, lua_touserdata, luaL_checkstring, luaL_getmetatable};
 use tokio::runtime::Runtime;
 
 use crate::logger::{log, LogLevel};
-use crate::mongo::{craete_client_options, create_mongo_client};
+use crate::mongo::{create_client_options, create_mongo_client};
+
+fn send_client(l: LuaState, client: Client) {
+    unsafe {
+        let client_ptr = Box::into_raw(Box::new(client));
+        lua_pushlightuserdata(l, client_ptr as *mut std::ffi::c_void);
+    }
+}
 
 fn get_client(l: LuaState) -> Result<Client, String> {
     unsafe {
@@ -24,28 +31,15 @@ pub fn new_client(l: LuaState) -> i32 {
     let connection_url = rstr!(luaL_checkstring(l, 1));
     log(LogLevel::Info, &format!("Connecting to MongoDB at {:?}", connection_url));
 
-    let receiver = craete_client_options(connection_url.to_string());
+    let client_options = create_client_options(connection_url.to_string());
+    let client = create_mongo_client(client_options);
+    log(LogLevel::Info, "Connected to MongoDB");
 
-    match receiver.recv().unwrap() {
-        Ok(client_options) => {
-            let client = create_mongo_client(client_options);
-            log(LogLevel::Info, "Connected to MongoDB");
+    send_client(l, client);
+    luaL_getmetatable(l, cstr!("MongoDBClient"));
+    lua_setmetatable(l, -2);
 
-            unsafe {
-                let client_ptr = Box::into_raw(Box::new(client));
-                lua_pushlightuserdata(l, client_ptr as *mut std::ffi::c_void);
-            }
-
-            luaL_getmetatable(l, cstr!("MongoDBClient"));
-            lua_setmetatable(l, -2);
-            lua_call(l, 1, 0);
-        }
-        Err(e) => {
-            log(LogLevel::Error, &format!("Failed to connect to MongoDB: {}", e));
-        }
-    }
-
-    0
+    1
 }
 
 #[lua_function]
@@ -56,9 +50,8 @@ pub fn get_database(l: LuaState) -> i32 {
     let database_name = rstr!(luaL_checkstring(l, 2));
     log(LogLevel::Info, &format!("Retrieving database '{}'...", database_name));
 
-    log(LogLevel::Debug, &format!("Client: {:?}", client));
     let db = client.database("admin");
-    log(LogLevel::Debug, &format!("Database: {:?}", db));
-    return 1;
+
+    1
 }
 

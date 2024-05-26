@@ -1,8 +1,5 @@
 #![allow(dead_code)]
 
-use std::sync::mpsc::{channel, Receiver};
-use std::thread;
-
 use mongodb::{Client, Database};
 use mongodb::bson::Document;
 use mongodb::options::{ClientOptions, ServerApi, ServerApiVersion};
@@ -17,21 +14,15 @@ use crate::logger::{log, LogLevel};
 // ██████╔╝██║  ██║   ██║   ██║  ██║██████╔╝██║  ██║███████║███████╗
 // ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
 
-pub fn craete_client_options(connection_url: String) -> Receiver<Result<ClientOptions, String>> {
-    let (sender, receiver) = channel();
+pub fn create_client_options(connection_url: String) -> ClientOptions {
+    let rt = Runtime::new().unwrap();
 
-    let t = thread::spawn(move || {
-        let rt = Runtime::new().unwrap();
-        rt.block_on(async {
-            let mut client_options = ClientOptions::parse(connection_url).await.unwrap();
-            let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
-            client_options.server_api = Some(server_api);
-            sender.send(Ok(client_options)).unwrap();
-        });
-    });
-
-    t.join().unwrap();
-    receiver
+    rt.block_on(async {
+        let mut client_options = ClientOptions::parse(connection_url).await.unwrap();
+        let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
+        client_options.server_api = Some(server_api);
+        client_options
+    })
 }
 
 pub fn create_mongo_client(client_options: ClientOptions) -> Client {
