@@ -1,3 +1,3 @@
 pub(crate) mod mongodbclient;
-mod mongodbdatabase;
-mod mongodbcollection;
+pub(crate) mod mongodbdatabase;
+pub(crate) mod mongodbcollection;

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/FedustriaMongo.iml" filepath="$PROJECT_DIR$/.idea/FedustriaMongo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/gmsv_mongo.iml" filepath="$PROJECT_DIR$/.idea/gmsv_mongo.iml" />
     </modules>
   </component>
 </project>
