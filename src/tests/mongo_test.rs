@@ -6,7 +6,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
 
     use crate::logger::{log, LogLevel};
-    use crate::mongo::connect_to_db;
+    use crate::mongo::{craete_client_options, create_mongo_client};
 
     #[derive(Serialize, Deserialize, Debug)]
     struct TestType {
@@ -57,10 +57,18 @@ mod tests {
         }
 
         let runtime = tokio::runtime::Runtime::new().unwrap();
-        let client = runtime.block_on(connect_to_db(&*connection_string)).unwrap();
-        let admin_db = client.database("admin");
-        assert_eq!(admin_db.name(), "admin");
+        let receiver = craete_client_options(connection_string);
 
+        match receiver.recv().unwrap() {
+            Ok(client_options) => {
+                let client = create_mongo_client(client_options);
+                let admin_db = client.database("admin");
+                assert_eq!(admin_db.name(), "admin");
+            }
+            Err(e) => {
+                panic!("Failed to connect to MongoDB: {}", e);
+            }
+        }
         Ok(())
     }
 }

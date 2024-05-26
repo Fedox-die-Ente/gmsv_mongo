@@ -1,8 +1,12 @@
 #![allow(dead_code)]
 
+use std::sync::mpsc::{channel, Receiver};
+use std::thread;
+
 use mongodb::{Client, Database};
 use mongodb::bson::Document;
 use mongodb::options::{ClientOptions, ServerApi, ServerApiVersion};
+use tokio::runtime::Runtime;
 
 use crate::logger::{log, LogLevel};
 
@@ -13,25 +17,28 @@ use crate::logger::{log, LogLevel};
 // ██████╔╝██║  ██║   ██║   ██║  ██║██████╔╝██║  ██║███████║███████╗
 // ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
 
-pub async fn connect_to_db(connection_string: &str) -> mongodb::error::Result<Client> {
-    if connection_string.is_empty() {
-        log(LogLevel::Error, "MONGO_CONNECTION_STRING must be set");
-        panic!("MONGO_CONNECTION_STRING must be set");
-    }
+pub fn craete_client_options(connection_url: String) -> Receiver<Result<ClientOptions, String>> {
+    let (sender, receiver) = channel();
 
-    let mut client_options = ClientOptions::parse(connection_string).await.unwrap();
-    let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
-    client_options.server_api = Some(server_api);
+    let t = thread::spawn(move || {
+        let rt = Runtime::new().unwrap();
+        rt.block_on(async {
+            let mut client_options = ClientOptions::parse(connection_url).await.unwrap();
+            let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
+            client_options.server_api = Some(server_api);
+            sender.send(Ok(client_options)).unwrap();
+        });
+    });
 
-    let client = Client::with_options(client_options);
+    t.join().unwrap();
+    receiver
+}
 
-    if client.is_ok() {
-        log(LogLevel::Info, "Connected to MongoDB");
-        return client;
-    } else {
-        log(LogLevel::Error, "Failed to connect to MongoDB");
-    }
-
+pub fn create_mongo_client(client_options: ClientOptions) -> Client {
+    let rt = Runtime::new().unwrap();
+    let client = rt.block_on(async {
+        Client::with_options(client_options).expect("Failed to create client")
+    });
     return client;
 }
 
