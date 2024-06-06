@@ -1,20 +1,22 @@
-#![allow(dead_code)]
-
-use mongodb::Client;
-use rglua::lua::LuaState;
-use rglua::prelude::{lua_pushlightuserdata, lua_setmetatable, lua_touserdata, luaL_checkstring, luaL_getmetatable};
+use mongodb::{Client, Database};
+use rglua::lua::{lua_newuserdata, LuaState};
+use rglua::prelude::{lua_setmetatable, lua_touserdata, luaL_checkstring, luaL_getmetatable};
 
 use crate::logger::{log, LogLevel};
 
-fn get_client(l: LuaState) -> Result<Client, String> {
-    unsafe {
-        let client_ptr = lua_touserdata(l, 1) as *mut Client;
-        if client_ptr.is_null() {
-            return Err("Client is null".to_string());
-        }
+fn get_client(l: LuaState) -> Option<Client> {
+    let client_ptr = lua_touserdata(l, 1) as *mut Client;
+    if client_ptr.is_null() {
+        None
+    } else {
+        Some(unsafe { (*client_ptr).clone() })
+    }
+}
 
-        let client = Box::from_raw(client_ptr);
-        Ok(*client)
+fn send_database(l: LuaState, db: mongodb::Database) {
+    let db_ptr = lua_newuserdata(l, std::mem::size_of::<Client>()) as *mut Database;
+    unsafe {
+        std::ptr::write(db_ptr, db);
     }
 }
 
@@ -27,12 +29,9 @@ pub fn get_database(l: LuaState) -> i32 {
 
     let db = client.database(database_name);
 
-    let db_ptr = Box::into_raw(Box::new(db));
-    lua_pushlightuserdata(l, db_ptr as *mut std::ffi::c_void);
-
+    send_database(l, db);
     luaL_getmetatable(l, cstr!("MongoDBDatabase"));
     lua_setmetatable(l, -2);
 
     1
 }
-

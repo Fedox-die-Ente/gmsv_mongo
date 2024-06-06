@@ -1,10 +1,7 @@
-#![allow(dead_code)]
-
 use lazy_static::lazy_static;
-use mongodb::{Client};
+use mongodb::Client;
 use mongodb::options::{ClientOptions, ServerApi, ServerApiVersion};
 use tokio::runtime::Runtime;
-
 
 // ██████╗  █████╗ ████████╗ █████╗ ██████╗  █████╗ ███████╗███████╗
 // ██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝
@@ -14,7 +11,7 @@ use tokio::runtime::Runtime;
 // ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
 
 lazy_static! {
-    pub static ref MONGO_WORKER: Runtime = Runtime::new().unwrap();
+    pub static ref MONGO_WORKER: Runtime = tokio::runtime::Builder::new_multi_thread().enable_all().build().unwrap();
 }
 
 pub fn create_client_options(connection_url: String) -> ClientOptions {

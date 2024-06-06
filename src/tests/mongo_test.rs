@@ -56,9 +56,7 @@ mod tests {
             panic!("MONGO_CONNECTION_STRING must be set");
         }
 
-        let runtime = tokio::runtime::Runtime::new().unwrap();
         let client_options = create_client_options(connection_string);
-        
         let client = create_mongo_client(client_options);
         let admin_db = client.database("admin");
         assert_eq!(admin_db.name(), "admin");

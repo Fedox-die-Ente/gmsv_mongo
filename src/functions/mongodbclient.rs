@@ -1,13 +1,25 @@
 use mongodb::Client;
-use rglua::lua::LuaState;
-use rglua::prelude::{lua_pushlightuserdata, lua_setmetatable, luaL_checkstring, luaL_getmetatable};
+use rglua::lua::{lua_newuserdata, LuaState};
+use rglua::prelude::{lua_setmetatable, luaL_checkstring, luaL_getmetatable};
 
 use crate::logger::{log, LogLevel};
 use crate::mongo::{create_client_options, create_mongo_client};
 
+pub struct MongoDBClient {
+    client: Client,
+}
+
+impl MongoDBClient {
+    pub fn new(client: Client) -> Self {
+        MongoDBClient { client }
+    }
+}
+
 fn send_client(l: LuaState, client: Client) {
-    let client_ptr = Box::into_raw(Box::new(client));
-    lua_pushlightuserdata(l, client_ptr as *mut std::ffi::c_void);
+    let client_ptr = lua_newuserdata(l, std::mem::size_of::<Client>()) as *mut Client;
+    unsafe {
+        std::ptr::write(client_ptr, client);
+    }
 }
 
 #[lua_function]

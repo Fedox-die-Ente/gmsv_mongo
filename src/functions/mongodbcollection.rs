@@ -1,25 +1,23 @@
-#![allow(dead_code)]
-
-use mongodb::{Database};
+use mongodb::{Collection, Database};
 use mongodb::bson::Document;
-use rglua::lua::{lua_getmetatable, lua_pushboolean, lua_pushlightuserdata, lua_setmetatable, lua_touserdata, luaL_checkstring, luaL_getmetatable, LuaState};
+use rglua::lua::{lua_newuserdata, lua_pushboolean, lua_setmetatable, lua_touserdata, luaL_checkstring, luaL_getmetatable, LuaState};
+
 use crate::logger::{log, LogLevel};
 use crate::mongo::MONGO_WORKER;
 
 fn send_collection(l: LuaState, collection: mongodb::Collection<Document>) {
-    let collection_ptr = Box::into_raw(Box::new(collection));
-    lua_pushlightuserdata(l, collection_ptr as *mut std::ffi::c_void);
+    let collection_ptr = lua_newuserdata(l, std::mem::size_of::<Collection<Document>>()) as *mut Collection<Document>;
+    unsafe {
+        std::ptr::write(collection_ptr, collection);
+    }
 }
 
-fn get_database(l: LuaState) -> Result<Database, String> {
-    unsafe {
-        let database_ptr = lua_touserdata(l, 1) as *mut Database;
-        if database_ptr.is_null() {
-            return Err("Database is null".to_string());
-        }
-
-        let database = Box::from_raw(database_ptr);
-        Ok(*database)
+fn get_database(l: LuaState) -> Option<Database> {
+    let ptr = lua_touserdata(l, 1) as *mut Database;
+    if ptr.is_null() {
+        None
+    } else {
+        Some(unsafe { (*ptr).clone() })
     }
 }
 
@@ -30,8 +28,8 @@ fn get_current_collection(l: LuaState) -> Result<mongodb::Collection<Document>, 
             return Err("Collection is null".to_string());
         }
 
-        let collection = Box::from_raw(collection_ptr);
-        Ok(*collection)
+        let collection = &*collection_ptr;
+        Ok(collection.clone())
     }
 }
 
@@ -95,10 +93,10 @@ pub fn drop_collection(l: LuaState) -> i32 {
     }
 
     MONGO_WORKER.block_on(async {
-        db.collection::<Document>(collection_name).drop(None).await.expect("Failed to drop collection");
-        lua_pushboolean(l, true as i32);
-        return 1;
+        let _ = db.collection::<Document>(collection_name).drop(None).await;
     });
+
+    lua_pushboolean(l, true as i32);
 
     1
 }
@@ -128,7 +126,11 @@ pub fn create_collection(_l: LuaState) -> i32 {
         db.create_collection(collection_name, None).await
     });
 
-    1
+    if result.is_err() {
+        log(LogLevel::Error, &format!("Failed to create collection '{}'.", collection_name));
+    }
+
+    0
 }
 
 #[lua_function]
