@@ -1,16 +1,9 @@
-use mongodb::Client;
-use rglua::lua::{lua_newuserdata, LuaState};
+use rglua::lua::LuaState;
 use rglua::prelude::{lua_setmetatable, luaL_checkstring, luaL_getmetatable};
 
 use crate::logger::{log, LogLevel};
 use crate::mongo::{create_client_options, create_mongo_client};
-
-fn send_client(l: LuaState, client: Client) {
-    let client_ptr = lua_newuserdata(l, std::mem::size_of::<Client>()) as *mut Client;
-    unsafe {
-        std::ptr::write(client_ptr, client);
-    }
-}
+use crate::utils::luautils::write_userdata;
 
 #[lua_function]
 pub fn new_client(l: LuaState) -> i32 {
@@ -20,7 +13,7 @@ pub fn new_client(l: LuaState) -> i32 {
     let client = create_mongo_client(client_options);
     log(LogLevel::Info, "Successfully connected to MongoDB.");
 
-    send_client(l, client);
+    write_userdata(l, client);
     luaL_getmetatable(l, cstr!("MongoDBClient"));
     lua_setmetatable(l, -2);
 
