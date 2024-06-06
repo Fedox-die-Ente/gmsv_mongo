@@ -5,16 +5,6 @@ use rglua::prelude::{lua_setmetatable, luaL_checkstring, luaL_getmetatable};
 use crate::logger::{log, LogLevel};
 use crate::mongo::{create_client_options, create_mongo_client};
 
-pub struct MongoDBClient {
-    client: Client,
-}
-
-impl MongoDBClient {
-    pub fn new(client: Client) -> Self {
-        MongoDBClient { client }
-    }
-}
-
 fn send_client(l: LuaState, client: Client) {
     let client_ptr = lua_newuserdata(l, std::mem::size_of::<Client>()) as *mut Client;
     unsafe {
