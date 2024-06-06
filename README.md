@@ -70,6 +70,10 @@ Finally, you can load the module from Lua with:
 require("mongo")
 ```
 
+<h2>🧑‍💻 Examples</h2>
+
+For some examples on how to use the module, check out the [examples](https://github.com/Fedox-die-Ente/gmsv_mongo/tree/master/examples) folder. 
+
 <h2>🛡️ License:</h2>
 
 This project is licensed under the [AGPL-3.0](LICENSE)
