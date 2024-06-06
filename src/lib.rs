@@ -17,6 +17,7 @@ mod logger;
 mod mongo;
 mod functions;
 mod tests;
+mod utils;
 
 #[gmod_open]
 unsafe fn open(l: LuaState) -> i32 {

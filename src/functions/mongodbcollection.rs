@@ -1,44 +1,18 @@
 use std::ffi::{CStr, CString};
+
 use futures::TryStreamExt;
 use mongodb::{Collection, Database};
 use mongodb::bson::{Bson, Document};
-use rglua::lua::{lua_newuserdata, lua_pushboolean, lua_setmetatable, lua_touserdata, luaL_checkstring, luaL_getmetatable, LuaState};
+use rglua::lua::{lua_pushboolean, lua_setmetatable, luaL_checkstring, luaL_getmetatable, LuaState};
 use rglua::prelude::{lua_gettop, lua_istable, lua_newtable, lua_next, lua_pop, lua_pushnil, lua_pushnumber, lua_pushstring, lua_rawseti, lua_settable, lua_tonumber, lua_tostring, lua_type};
 
 use crate::logger::{log, LogLevel};
 use crate::mongo::MONGO_WORKER;
+use crate::utils::luautils::{read_userdata, write_userdata};
 
 const LUA_TNUMBER: i32 = 3;
 const LUA_TSTRING: i32 = 4;
 const LUA_TTABLE: i32 = 5;
-
-fn send_collection(l: LuaState, collection: mongodb::Collection<Document>) {
-    let collection_ptr = lua_newuserdata(l, std::mem::size_of::<Collection<Document>>()) as *mut Collection<Document>;
-    unsafe {
-        std::ptr::write(collection_ptr, collection);
-    }
-}
-
-fn get_database(l: LuaState) -> Option<Database> {
-    let ptr = lua_touserdata(l, 1) as *mut Database;
-    if ptr.is_null() {
-        None
-    } else {
-        Some(unsafe { (*ptr).clone() })
-    }
-}
-
-fn get_current_collection(l: LuaState) -> Result<mongodb::Collection<Document>, String> {
-    unsafe {
-        let collection_ptr = lua_touserdata(l, 1) as *mut mongodb::Collection<Document>;
-        if collection_ptr.is_null() {
-            return Err("Collection is null".to_string());
-        }
-
-        let collection = &*collection_ptr;
-        Ok(collection.clone())
-    }
-}
 
 fn lua_table_to_bson(l: LuaState, index: i32) -> Result<Document, String> {
     #[allow(unused_unsafe)]
@@ -105,12 +79,12 @@ fn bson_to_lua_table(l: LuaState, doc: Document) {
                 Bson::String(v) => {
                     let cstr = CString::new(v.clone()).unwrap();
                     lua_pushstring(l, cstr.as_ptr())
-                },
+                }
                 Bson::Document(v) => {
                     bson_to_lua_table(l, v.clone());
                     lua_settable(l, -3);
                     continue;
-                },
+                }
                 _ => lua_pushnil(l),
             }
             lua_settable(l, -3);
@@ -127,7 +101,7 @@ fn bson_to_lua_table(l: LuaState, doc: Document) {
 
 #[lua_function]
 pub fn get_collection(l: LuaState) -> i32 {
-    let db = get_database(l).unwrap();
+    let db: Database = read_userdata(l).unwrap();
 
     let collection_name = rstr!(luaL_checkstring(l, 2));
 
@@ -147,7 +121,7 @@ pub fn get_collection(l: LuaState) -> i32 {
         return 0;
     }
 
-    send_collection(l, collection);
+    write_userdata(l, collection);
     luaL_getmetatable(l, cstr!("MongoDBCollection"));
     lua_setmetatable(l, -2);
 
@@ -156,7 +130,7 @@ pub fn get_collection(l: LuaState) -> i32 {
 
 #[lua_function]
 pub fn drop_collection(l: LuaState) -> i32 {
-    let db = get_database(l).unwrap();
+    let db: Database = read_userdata(l).unwrap();
 
     let collection_name = rstr!(luaL_checkstring(l, 2));
 
@@ -187,7 +161,7 @@ pub fn drop_collection(l: LuaState) -> i32 {
 
 #[lua_function]
 pub fn create_collection(_l: LuaState) -> i32 {
-    let db = get_database(_l).unwrap();
+    let db: Database = read_userdata(_l).unwrap();
     let collection_name = rstr!(luaL_checkstring(_l, 2));
 
     let collection_list = MONGO_WORKER.block_on(async {
@@ -217,7 +191,7 @@ pub fn create_collection(_l: LuaState) -> i32 {
 
 #[lua_function]
 pub fn insert(l: LuaState) -> i32 {
-    let collection = match get_current_collection(l) {
+    let collection: Collection<Document> = match read_userdata(l) {
         Ok(col) => col,
         Err(err) => {
             log(LogLevel::Error, &format!("Failed to get collection: {}", err));
@@ -251,7 +225,7 @@ pub fn insert(l: LuaState) -> i32 {
 
 #[lua_function]
 pub fn find(l: LuaState) -> i32 {
-    let collection = match get_current_collection(l) {
+    let collection: Collection<Document> = match read_userdata(l) {
         Ok(col) => col,
         Err(err) => {
             log(LogLevel::Error, &format!("Failed to get collection: {}", err));
@@ -292,9 +266,10 @@ pub fn find(l: LuaState) -> i32 {
 
     1
 }
+
 #[lua_function]
 pub fn update(l: LuaState) -> i32 {
-    let collection = match get_current_collection(l) {
+    let collection: Collection<Document> = match read_userdata(l) {
         Ok(col) => col,
         Err(err) => {
             log(LogLevel::Error, &format!("Failed to get collection: {}", err));
@@ -338,7 +313,7 @@ pub fn update(l: LuaState) -> i32 {
 
 #[lua_function]
 pub fn delete(l: LuaState) -> i32 {
-    let collection = match get_current_collection(l) {
+    let collection: Collection<Document> = match read_userdata(l) {
         Ok(col) => col,
         Err(err) => {
             log(LogLevel::Error, &format!("Failed to get collection: {}", err));
