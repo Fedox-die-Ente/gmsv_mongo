@@ -25,8 +25,6 @@ pub fn get_database(l: LuaState) -> i32 {
     let client = get_client(l).unwrap();
 
     let database_name = rstr!(luaL_checkstring(l, 2));
-    log(LogLevel::Info, &format!("Retrieving database '{}'...", database_name));
-
     let db = client.database(database_name);
 
     send_database(l, db);

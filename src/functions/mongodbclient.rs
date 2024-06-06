@@ -15,11 +15,10 @@ fn send_client(l: LuaState, client: Client) {
 #[lua_function]
 pub fn new_client(l: LuaState) -> i32 {
     let connection_url = rstr!(luaL_checkstring(l, 1));
-    log(LogLevel::Info, &format!("Connecting to MongoDB at {:?}", connection_url));
 
     let client_options = create_client_options(connection_url.to_string());
     let client = create_mongo_client(client_options);
-    log(LogLevel::Info, "Connected to MongoDB");
+    log(LogLevel::Info, "Successfully connected to MongoDB.");
 
     send_client(l, client);
     luaL_getmetatable(l, cstr!("MongoDBClient"));

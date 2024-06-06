@@ -10,7 +10,7 @@ use logger::log;
 use logger::LogLevel;
 
 use crate::functions::mongodbclient::new_client;
-use crate::functions::mongodbcollection::{create_collection, drop_collection, get_collection};
+use crate::functions::mongodbcollection::{create_collection, delete, drop_collection, find, get_collection, insert, update};
 use crate::functions::mongodbdatabase::get_database;
 
 mod logger;
@@ -45,6 +45,14 @@ unsafe fn open(l: LuaState) -> i32 {
     luaL_newmetatable(l, cstr!("MongoDBCollection"));
     lua_pushvalue(l, -1);
     lua_setfield(l, -2, cstr!("__index"));
+    lua_pushcfunction(l, insert);
+    lua_setfield(l, -2, cstr!("Insert"));
+    lua_pushcfunction(l, find);
+    lua_setfield(l, -2, cstr!("Find"));
+    lua_pushcfunction(l, update);
+    lua_setfield(l, -2, cstr!("Update"));
+    lua_pushcfunction(l, delete);
+    lua_setfield(l, -2, cstr!("Delete"));
 
     lua_newtable(l);
     lua_pushcfunction(l, new_client);
@@ -57,8 +65,6 @@ unsafe fn open(l: LuaState) -> i32 {
 
 #[gmod_close]
 fn close(_l: LuaState) -> i32 {
-    println!("Goodbye from binary module!");
-
     let cargo_name = env!("CARGO_PKG_NAME");
     let cargo_version = env!("CARGO_PKG_VERSION");
     let log_message = format!("Module '{} ({})' is dying now.", cargo_name, cargo_version);
