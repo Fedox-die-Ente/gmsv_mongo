@@ -74,6 +74,12 @@ require("mongo")
 
 For some examples on how to use the module, check out the [examples](https://github.com/Fedox-die-Ente/gmsv_mongo/tree/master/examples) folder. 
 
+<h2>🤵 Credits</h2>
+
+- [Fedox-the-Duck](https://github.com/Fedox-die-Ente) - Creator of the project
+- [Austria7](https://github.com/Austria7) - Contributor and helper of the project
+- [PolEpie](https://github.com/polepie) - Helped me start this project and gave me some tips on rust.
+
 <h2>🛡️ License:</h2>
 
 This project is licensed under the [AGPL-3.0](LICENSE)
