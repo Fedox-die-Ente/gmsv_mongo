@@ -13,6 +13,7 @@ use crate::utils::luautils::{read_userdata, write_userdata};
 const LUA_TNUMBER: i32 = 3;
 const LUA_TSTRING: i32 = 4;
 const LUA_TTABLE: i32 = 5;
+const LUA_TNIL: i32 = 0;
 
 fn lua_table_to_bson(l: LuaState, index: i32) -> Result<Document, String> {
     #[allow(unused_unsafe)]
@@ -117,8 +118,8 @@ pub fn get_collection(l: LuaState) -> i32 {
     }
 
     if !collection_list.unwrap().contains(&collection_name.to_string()) {
-        log(LogLevel::Warning, &format!("Trying to get collection '{}', but it doesn't exist in '{}'.", collection_name, db.name()));
-        return 0;
+        lua_pushnil(l);
+        return 1;
     }
 
     write_userdata(l, collection);
@@ -174,8 +175,8 @@ pub fn create_collection(_l: LuaState) -> i32 {
     }
 
     if collection_list.unwrap().contains(&collection_name.to_string()) {
-        log(LogLevel::Warning, &format!("Trying to create collection '{}', but it already exists in '{}'.", collection_name, db.name()));
-        return 0;
+        lua_pushnil(_l);
+        return 1;
     }
 
     let result = MONGO_WORKER.block_on(async {
