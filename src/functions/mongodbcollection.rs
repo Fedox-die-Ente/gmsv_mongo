@@ -44,10 +44,6 @@ fn lua_table_to_bson(l: LuaState, index: i32) -> Result<Document, String> {
         lua_pushnil(l);
         while lua_next(l, index) != 0 {
             let key_type = lua_type(l, -2);
-            if key_type != LUA_TSTRING && key_type != LUA_TNUMBER {
-                lua_pop(l, 1);
-                return Err("Table key must be a string".to_string());
-            }
 
             let key_result = get_table_key(l, key_type);
             if key_result.is_err() {
