@@ -15,6 +15,24 @@ const LUA_TSTRING: i32 = 4;
 const LUA_TTABLE: i32 = 5;
 const LUA_TNIL: i32 = 0;
 
+unsafe fn get_table_key(l: LuaState, key_type: i32) -> Result<String, String> {
+    if key_type == LUA_TSTRING {
+        let key_ptr = lua_tostring(l, -2);
+        if key_ptr.is_null() {
+            lua_pop(l, 1);
+            return Err("Invalid key type".to_string());
+        }
+        return Ok(CStr::from_ptr(key_ptr).to_str().unwrap().to_string());
+    }
+
+    if key_type == LUA_TNUMBER {
+        let key = lua_tonumber(l, -2);
+        return Ok(key.to_string());
+    }
+
+    Err("Table key must be a string or number".to_string())
+}
+
 fn lua_table_to_bson(l: LuaState, index: i32) -> Result<Document, String> {
     #[allow(unused_unsafe)]
     if !unsafe { lua_istable(l, index) } {
@@ -26,17 +44,18 @@ fn lua_table_to_bson(l: LuaState, index: i32) -> Result<Document, String> {
         lua_pushnil(l);
         while lua_next(l, index) != 0 {
             let key_type = lua_type(l, -2);
-            if key_type != LUA_TSTRING {
+            if key_type != LUA_TSTRING && key_type != LUA_TNUMBER {
                 lua_pop(l, 1);
                 return Err("Table key must be a string".to_string());
             }
 
-            let key_ptr = lua_tostring(l, -2);
-            if key_ptr.is_null() {
+            let key_result = get_table_key(l, key_type);
+            if key_result.is_err() {
                 lua_pop(l, 1);
-                return Err("Invalid key type".to_string());
+                return Err(key_result.unwrap_err());
             }
-            let key = CStr::from_ptr(key_ptr).to_str().unwrap().to_string();
+
+            let key = key_result.unwrap();
 
             let value_type = lua_type(l, -1);
             match value_type {
