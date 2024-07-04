@@ -109,7 +109,7 @@ pub fn get_collection(l: LuaState) -> i32 {
     let collection: mongodb::Collection<Document> = db.collection(collection_name);
 
     let collection_list = MONGO_WORKER.block_on(async {
-        db.list_collection_names(None).await
+        db.list_collection_names().await
     });
 
     if collection_list.is_err() {
@@ -136,7 +136,7 @@ pub fn drop_collection(l: LuaState) -> i32 {
     let collection_name = rstr!(luaL_checkstring(l, 2));
 
     let collection_list = MONGO_WORKER.block_on(async {
-        db.list_collection_names(None).await
+        db.list_collection_names().await
     });
 
     if collection_list.is_err() {
@@ -152,7 +152,7 @@ pub fn drop_collection(l: LuaState) -> i32 {
     }
 
     MONGO_WORKER.block_on(async {
-        let _ = db.collection::<Document>(collection_name).drop(None).await;
+        let _ = db.collection::<Document>(collection_name).drop().await;
     });
 
     lua_pushboolean(l, true as i32);
@@ -166,7 +166,7 @@ pub fn create_collection(_l: LuaState) -> i32 {
     let collection_name = rstr!(luaL_checkstring(_l, 2));
 
     let collection_list = MONGO_WORKER.block_on(async {
-        db.list_collection_names(None).await
+        db.list_collection_names().await
     });
 
     if collection_list.is_err() {
@@ -180,7 +180,7 @@ pub fn create_collection(_l: LuaState) -> i32 {
     }
 
     let result = MONGO_WORKER.block_on(async {
-        db.create_collection(collection_name, None).await
+        db.create_collection(collection_name).await
     });
 
     if result.is_err() {
@@ -211,7 +211,7 @@ pub fn insert(l: LuaState) -> i32 {
     };
 
     let insert_result = MONGO_WORKER.block_on(async {
-        collection.insert_one(doc, None).await
+        collection.insert_one(doc).await
     });
 
     if let Err(err) = insert_result {
@@ -245,7 +245,7 @@ pub fn find(l: LuaState) -> i32 {
     };
 
     let find_result = MONGO_WORKER.block_on(async {
-        collection.find(Some(filter), None).await
+        collection.find(filter).await
     });
 
     if let Err(err) = find_result {
@@ -298,7 +298,7 @@ pub fn update(l: LuaState) -> i32 {
     };
 
     let update_result = MONGO_WORKER.block_on(async {
-        collection.update_many(filter, update, None).await
+        collection.update_many(filter, update).await
     });
 
     match update_result {
@@ -333,7 +333,7 @@ pub fn delete(l: LuaState) -> i32 {
     };
 
     let delete_result = MONGO_WORKER.block_on(async {
-        collection.delete_many(filter, None).await
+        collection.delete_many(filter).await
     });
 
     match delete_result {

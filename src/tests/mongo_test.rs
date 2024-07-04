@@ -31,7 +31,7 @@ mod tests {
 
         let db = client.database("admin");
 
-        let _ = db.create_collection("testtest", None).await?;
+        let _ = db.create_collection("testtest").await?;
         log(LogLevel::Info, "Collection created.");
 
         let collection: Collection<TestType> = db.collection("testtest");
@@ -41,8 +41,8 @@ mod tests {
             age: 20,
         };
 
-        collection.insert_one(test, None).await.expect("Failed to insert");
-        collection.drop(None).await.expect("Failed to drop collection");
+        collection.insert_one(test).await.expect("Failed to insert");
+        collection.drop().await.expect("Failed to drop collection");
 
         Ok(())
     }
