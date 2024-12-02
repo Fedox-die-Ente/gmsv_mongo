@@ -12,20 +12,23 @@ use logger::LogLevel;
 use crate::functions::mongodbclient::new_client;
 use crate::functions::mongodbcollection::{create_collection, delete, drop_collection, find, get_collection, insert, update};
 use crate::functions::mongodbdatabase::get_database;
+use crate::updatecheck::check_latest_version;
 
 mod logger;
 mod mongo;
 mod functions;
 mod tests;
 mod utils;
+mod updatecheck;
 
 #[gmod_open]
 unsafe fn open(l: LuaState) -> i32 {
     let cargo_name = env!("CARGO_PKG_NAME");
     let cargo_version = env!("CARGO_PKG_VERSION");
     let log_message = format!("Module '{} ({})' loaded and ready.", cargo_name, cargo_version);
-
     log(LogLevel::Info, &*log_message);
+
+    check_latest_version().unwrap();
 
     luaL_newmetatable(l, cstr!("MongoDBClient"));
     lua_pushvalue(l, -1);
