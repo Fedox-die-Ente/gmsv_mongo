@@ -9,8 +9,8 @@ use crate::utils::luautils::write_userdata;
 pub fn new_client(l: LuaState) -> i32 {
     let connection_url = rstr!(luaL_checkstring(l, 1));
 
-    if !connection_url.starts_with("mongodb://") {
-        luaL_error(l, cstr!("Invalid connection URL. Must start with 'mongodb://'."));
+    if !connection_url.starts_with("mongodb://") && !connection_url.starts_with("mongodb+srv://") {
+        luaL_error(l, cstr!("Invalid connection URL. Must start with 'mongodb://' or 'mongodb+srv://'."));
         return 0;
     }
 
