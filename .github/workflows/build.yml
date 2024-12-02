@@ -11,7 +11,7 @@ env:
 jobs:
   build_linux:
     runs-on: ubuntu-latest
-    container: ubuntu:20.04
+    container: ubuntu:24.04
     steps:
       - uses: actions/checkout@v2
       - name: Install build dependencies
