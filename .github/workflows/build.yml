@@ -11,13 +11,12 @@ env:
 jobs:
   build_linux:
     runs-on: ubuntu-latest
-    container: ubuntu:20.04
     steps:
       - uses: actions/checkout@v2
       - name: Install build dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libc6-dev libgcc-8-dev libstdc++-8-dev
+          apt-get update
+          apt-get install -y libc6-dev libgcc-8-dev libstdc++-8-dev
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
