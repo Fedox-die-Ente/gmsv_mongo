@@ -1,4 +1,3 @@
-use reqwest::blocking::Client;
 use serde::Deserialize;
 use crate::logger::{log, LogLevel};
 
@@ -12,24 +11,28 @@ pub(crate) fn check_latest_version() -> Result<(), Box<dyn std::error::Error>> {
     let repo_name = "gmsv_mongo";
     let url = format!("https://api.github.com/repos/{}/{}/tags", repo_owner, repo_name);
 
-    let client = Client::builder()
-        .user_agent("Mozilla/5.0")
-        .build()?;
-    let response = client.get(&url).send()?;
-    let tags: Vec<GitHubTag> = response.json()?;
+    let response = ureq::get(&url)
+        .set("User-Agent", "Mozilla/5.0")
+        .call();
 
-    if let Some(latest_tag) = tags.first() {
-        let current_version = env!("CARGO_PKG_VERSION");
+    if let Ok(response) = response {
+        let tags: Vec<GitHubTag> = response.into_json()?;
 
-        log(LogLevel::Info, "Checking for updates...");
+        if let Some(latest_tag) = tags.first() {
+            let current_version = env!("CARGO_PKG_VERSION");
 
-        if latest_tag.name != current_version {
-            log(LogLevel::Warning, &format!("A new version is available: {}", latest_tag.name));
+            log(LogLevel::Info, "Checking for updates...");
+
+            if latest_tag.name != current_version {
+                log(LogLevel::Warning, &format!("A new version is available: {}", latest_tag.name));
+            } else {
+                log(LogLevel::Info, "You are using the latest version.");
+            }
         } else {
-            log(LogLevel::Info, "You are using the latest version.");
+            log(LogLevel::Error, "Failed to check for updates.");
         }
     } else {
-        log(LogLevel::Error, "Failed to check for updates.");
+        log(LogLevel::Error, "Failed to send request.");
     }
 
     Ok(())

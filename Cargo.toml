@@ -13,15 +13,11 @@ opt-level = 1
 rglua = { version = "2.1.0" }
 termcolor = "1.4.1"
 dotenv = "0.15.0"
-log = "0.4.21"
 futures = "0.3.30"
 tokio = { version = "1.32.0", features = ["full"] }
 lazy_static = "1.4.0"
-crossbeam = { version = "0.8", default-features = false, features = ["std", "crossbeam-channel"] }
-singlyton = "4.1.1"
-reqwest = { version = "0.12.9", features = ["json", "blocking"] }
 serde = { version = "1.0.188", features = ["derive"] }
-
+ureq = { version = "2.5.0", features = ["json"] }
 
 [dependencies.mongodb]
 version = "3.0.0"
