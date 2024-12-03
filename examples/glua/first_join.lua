@@ -1,3 +1,5 @@
+-- Load the MongoDB module
+require("mongo")
 local client = MongoDB.Client("mongodb://admin:password@localhost:27017")
 local database = client:Database("gmod_data")
 local collection = database:Collection("players")

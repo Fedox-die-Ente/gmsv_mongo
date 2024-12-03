@@ -1,3 +1,5 @@
+-- Load the MongoDB module
+require("mongo")
 -- Connect to the MongoDB client
 local client = MongoDB.Client("mongodb://admin:password@localhost:27017")
 -- Select the database

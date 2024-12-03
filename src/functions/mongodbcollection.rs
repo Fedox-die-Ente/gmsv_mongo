@@ -101,6 +101,11 @@ fn bson_to_lua_table(l: LuaState, doc: Document) {
                     lua_settable(l, -3);
                     continue;
                 }
+                Bson::ObjectId(v) => {
+                    let oid_string = v.to_hex();
+                    let cstr = CString::new(oid_string).unwrap();
+                    lua_pushstring(l, cstr.as_ptr());
+                }
                 _ => lua_pushnil(l),
             }
             lua_settable(l, -3);
