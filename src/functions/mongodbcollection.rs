@@ -13,7 +13,6 @@ use crate::utils::luautils::{read_userdata, write_userdata};
 const LUA_TNUMBER: i32 = 3;
 const LUA_TSTRING: i32 = 4;
 const LUA_TTABLE: i32 = 5;
-const LUA_TNIL: i32 = 0;
 
 unsafe fn get_table_key(l: LuaState, key_type: i32) -> Result<String, String> {
     if key_type == LUA_TSTRING {

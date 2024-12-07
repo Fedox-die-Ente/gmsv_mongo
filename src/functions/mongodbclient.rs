@@ -11,7 +11,6 @@ pub fn new_client(l: LuaState) -> i32 {
 
     if !connection_url.starts_with("mongodb://") && !connection_url.starts_with("mongodb+srv://") {
         luaL_error(l, cstr!("Invalid connection URL. Must start with 'mongodb://' or 'mongodb+srv://'."));
-        return 0;
     }
 
     let client_options = create_client_options(connection_url.to_string());

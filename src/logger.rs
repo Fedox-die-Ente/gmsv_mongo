@@ -2,6 +2,7 @@ use std::io::Write;
 
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
+#[allow(dead_code)]
 pub(crate) enum LogLevel {
     Info,
     Warning,
