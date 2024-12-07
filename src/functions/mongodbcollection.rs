@@ -3,17 +3,17 @@ use std::ffi::{CStr, CString};
 use futures::TryStreamExt;
 use mongodb::{Collection, Database};
 use mongodb::bson::{Bson, Document};
-use rglua::lua::{lua_pushboolean, lua_setmetatable, luaL_checkstring, luaL_getmetatable, LuaState};
+use rglua::lua::{luaL_checkstring, luaL_getmetatable, lua_pushboolean, lua_setmetatable, lua_toboolean, LuaState};
 use rglua::prelude::{lua_gettop, lua_istable, lua_newtable, lua_next, lua_pop, lua_pushnil, lua_pushnumber, lua_pushstring, lua_rawseti, lua_settable, lua_tonumber, lua_tostring, lua_type};
 
 use crate::logger::{log, LogLevel};
 use crate::mongo::MONGO_WORKER;
 use crate::utils::luautils::{read_userdata, write_userdata};
 
+const LUA_TBOOLEAN: i32 = 1;
 const LUA_TNUMBER: i32 = 3;
 const LUA_TSTRING: i32 = 4;
 const LUA_TTABLE: i32 = 5;
-const LUA_TNIL: i32 = 0;
 
 unsafe fn get_table_key(l: LuaState, key_type: i32) -> Result<String, String> {
     if key_type == LUA_TSTRING {
@@ -71,6 +71,10 @@ fn lua_table_to_bson(l: LuaState, index: i32) -> Result<Document, String> {
                 LUA_TTABLE => {
                     let nested_doc = lua_table_to_bson(l, lua_gettop(l))?;
                     doc.insert(key, Bson::Document(nested_doc));
+                }
+                LUA_TBOOLEAN => {
+                    let bool = lua_toboolean(l, -1) != 0;
+                    doc.insert(key, Bson::Boolean(bool));
                 }
                 _ => {
                     lua_pop(l, 1);
@@ -181,9 +185,9 @@ pub fn drop_collection(l: LuaState) -> i32 {
 }
 
 #[lua_function]
-pub fn create_collection(_l: LuaState) -> i32 {
-    let db: Database = read_userdata(_l).unwrap();
-    let collection_name = rstr!(luaL_checkstring(_l, 2));
+pub fn create_collection(l: LuaState) -> i32 {
+    let db: Database = read_userdata(l).unwrap();
+    let collection_name = rstr!(luaL_checkstring(l, 2));
 
     let collection_list = MONGO_WORKER.block_on(async {
         db.list_collection_names().await
@@ -191,11 +195,12 @@ pub fn create_collection(_l: LuaState) -> i32 {
 
     if collection_list.is_err() {
         log(LogLevel::Error, "Failed to retrieve collection names.");
+        lua_pushboolean(l, 0); // Error
         return 0;
     }
 
     if collection_list.unwrap().contains(&collection_name.to_string()) {
-        lua_pushnil(_l);
+        lua_pushboolean(l, 0); // Error
         return 1;
     }
 
@@ -203,11 +208,15 @@ pub fn create_collection(_l: LuaState) -> i32 {
         db.create_collection(collection_name).await
     });
 
-    if result.is_err() {
-        log(LogLevel::Error, &format!("Failed to create collection '{}'.", collection_name));
+    match result {
+        Ok(_) => lua_pushboolean(l, 1),
+        Err(_) => {
+            log(LogLevel::Error, &format!("Failed to create collection: '{}.'", collection_name));
+            lua_pushboolean(l, 0);
+        }
     }
 
-    0
+    1
 }
 
 #[lua_function]
