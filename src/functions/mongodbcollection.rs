@@ -191,11 +191,12 @@ pub fn create_collection(_l: LuaState) -> i32 {
 
     if collection_list.is_err() {
         log(LogLevel::Error, "Failed to retrieve collection names.");
+        lua_pushboolean(_l, 0); // Error
         return 0;
     }
 
     if collection_list.unwrap().contains(&collection_name.to_string()) {
-        lua_pushnil(_l);
+        lua_pushboolean(_l, 0); // Error
         return 1;
     }
 
@@ -205,9 +206,12 @@ pub fn create_collection(_l: LuaState) -> i32 {
 
     if result.is_err() {
         log(LogLevel::Error, &format!("Failed to create collection '{}'.", collection_name));
+        lua_pushboolean(_l, 0); // Error
+    } else {
+        lua_pushboolean(_l, 1); // Success
     }
 
-    0
+    1
 }
 
 #[lua_function]
