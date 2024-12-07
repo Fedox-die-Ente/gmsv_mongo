@@ -180,9 +180,9 @@ pub fn drop_collection(l: LuaState) -> i32 {
 }
 
 #[lua_function]
-pub fn create_collection(_l: LuaState) -> i32 {
-    let db: Database = read_userdata(_l).unwrap();
-    let collection_name = rstr!(luaL_checkstring(_l, 2));
+pub fn create_collection(l: LuaState) -> i32 {
+    let db: Database = read_userdata(l).unwrap();
+    let collection_name = rstr!(luaL_checkstring(l, 2));
 
     let collection_list = MONGO_WORKER.block_on(async {
         db.list_collection_names().await
@@ -190,12 +190,12 @@ pub fn create_collection(_l: LuaState) -> i32 {
 
     if collection_list.is_err() {
         log(LogLevel::Error, "Failed to retrieve collection names.");
-        lua_pushboolean(_l, 0); // Error
+        lua_pushboolean(l, 0); // Error
         return 0;
     }
 
     if collection_list.unwrap().contains(&collection_name.to_string()) {
-        lua_pushboolean(_l, 0); // Error
+        lua_pushboolean(l, 0); // Error
         return 1;
     }
 
@@ -204,10 +204,10 @@ pub fn create_collection(_l: LuaState) -> i32 {
     });
 
     match result {
-        Ok(_) => lua_pushboolean(_l, 1),
+        Ok(_) => lua_pushboolean(l, 1),
         Err(_) => {
             log(LogLevel::Error, &format!("Failed to create collection: '{}.'", collection_name));
-            lua_pushboolean(_l, 0);
+            lua_pushboolean(l, 0);
         }
     }
 
