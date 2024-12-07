@@ -1,4 +1,3 @@
-#![feature(c_unwind)]
 extern crate core;
 #[macro_use]
 extern crate rglua;
