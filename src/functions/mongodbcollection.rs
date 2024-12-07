@@ -3,13 +3,14 @@ use std::ffi::{CStr, CString};
 use futures::TryStreamExt;
 use mongodb::{Collection, Database};
 use mongodb::bson::{Bson, Document};
-use rglua::lua::{lua_pushboolean, lua_setmetatable, luaL_checkstring, luaL_getmetatable, LuaState};
+use rglua::lua::{luaL_checkstring, luaL_getmetatable, lua_pushboolean, lua_setmetatable, lua_toboolean, LuaState};
 use rglua::prelude::{lua_gettop, lua_istable, lua_newtable, lua_next, lua_pop, lua_pushnil, lua_pushnumber, lua_pushstring, lua_rawseti, lua_settable, lua_tonumber, lua_tostring, lua_type};
 
 use crate::logger::{log, LogLevel};
 use crate::mongo::MONGO_WORKER;
 use crate::utils::luautils::{read_userdata, write_userdata};
 
+const LUA_TBOOLEAN: i32 = 1;
 const LUA_TNUMBER: i32 = 3;
 const LUA_TSTRING: i32 = 4;
 const LUA_TTABLE: i32 = 5;
@@ -70,6 +71,10 @@ fn lua_table_to_bson(l: LuaState, index: i32) -> Result<Document, String> {
                 LUA_TTABLE => {
                     let nested_doc = lua_table_to_bson(l, lua_gettop(l))?;
                     doc.insert(key, Bson::Document(nested_doc));
+                }
+                LUA_TBOOLEAN => {
+                    let bool = lua_toboolean(l, -1) != 0;
+                    doc.insert(key, Bson::Boolean(bool));
                 }
                 _ => {
                     lua_pop(l, 1);
