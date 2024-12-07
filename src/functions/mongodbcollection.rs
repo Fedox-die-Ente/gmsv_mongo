@@ -204,11 +204,12 @@ pub fn create_collection(_l: LuaState) -> i32 {
         db.create_collection(collection_name).await
     });
 
-    if result.is_err() {
-        log(LogLevel::Error, &format!("Failed to create collection '{}'.", collection_name));
-        lua_pushboolean(_l, 0); // Error
-    } else {
-        lua_pushboolean(_l, 1); // Success
+    match result {
+        Ok(_) => lua_pushboolean(_l, 1),
+        Err(_) => {
+            log(LogLevel::Error, &format!("Failed to create collection: '{}.'", collection_name));
+            lua_pushboolean(_l, 0);
+        }
     }
 
     1
