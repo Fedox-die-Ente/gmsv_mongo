@@ -100,6 +100,7 @@ fn bson_to_lua_table(l: LuaState, doc: Document) {
                     let cstr = CString::new(v.clone()).unwrap();
                     lua_pushstring(l, cstr.as_ptr())
                 }
+                Bson::Boolean(v) => lua_pushboolean(l, *v as i32),
                 Bson::Document(v) => {
                     bson_to_lua_table(l, v.clone());
                     lua_settable(l, -3);
