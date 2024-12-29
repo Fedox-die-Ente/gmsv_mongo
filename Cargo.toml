@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 opt-level = 1
 
 [dependencies]
-rglua = { version = "2.1.0" }
+rglua = { version = "3.0.0" }
 termcolor = "1.4.1"
 dotenv = "0.15.0"
 futures = "0.3.30"
