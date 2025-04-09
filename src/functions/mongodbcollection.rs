@@ -289,12 +289,16 @@ pub fn find(l: LuaState) -> i32 {
         cursor.try_collect().await.unwrap_or_else(|_| Vec::new())
     });
 
-    lua_newtable(l);
-    for (i, doc) in docs.iter().enumerate() {
-        bson_to_lua_table(l, doc.clone());
-        lua_rawseti(l, -2, i as i32 + 1);
+    if docs.is_empty() {
+        lua_pushnil(l);
+    } else {
+        lua_newtable(l);
+        for (i, doc) in docs.iter().enumerate() {
+            bson_to_lua_table(l, doc.clone());
+            lua_rawseti(l, -2, i as i32 + 1);
+        }
     }
-
+    
     1
 }
 
