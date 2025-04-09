@@ -1,6 +1,8 @@
 use std::io::Write;
+use std::sync::atomic::{Ordering};
 
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+use super::SUPPRESS_MESSAGES;
 
 #[allow(dead_code)]
 pub(crate) enum LogLevel {
@@ -11,6 +13,9 @@ pub(crate) enum LogLevel {
 }
 
 pub(crate) fn log(level: LogLevel, message: &str) {
+    if SUPPRESS_MESSAGES.load(Ordering::Relaxed) {
+        return;
+    }
     let mut stdout = StandardStream::stdout(ColorChoice::Always);
     let mut color_spec = ColorSpec::new();
     match level {

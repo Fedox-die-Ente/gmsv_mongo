@@ -12,6 +12,7 @@ use crate::functions::mongodbclient::new_client;
 use crate::functions::mongodbcollection::{create_collection, delete, drop_collection, find, get_collection, insert, update};
 use crate::functions::mongodbdatabase::get_database;
 use crate::updatecheck::check_latest_version;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 mod logger;
 mod mongo;
@@ -19,6 +20,8 @@ mod functions;
 mod tests;
 mod utils;
 mod updatecheck;
+
+static SUPPRESS_MESSAGES: AtomicBool = AtomicBool::new(false);
 
 #[gmod_open]
 unsafe fn open(l: LuaState) -> i32 {
@@ -60,11 +63,20 @@ unsafe fn open(l: LuaState) -> i32 {
     lua_newtable(l);
     lua_pushcfunction(l, new_client);
     lua_setfield(l, -2, cstr!("Client"));
+
+    lua_pushcfunction(l, suppress_messages);
+    lua_setfield(l, -2, cstr!("SuppressMessages"));
+
     lua_setglobal(l, cstr!("MongoDB"));
 
     return 0;
 }
 
+extern "C" fn suppress_messages(l: LuaState) -> i32 {
+    let suppress = lua_toboolean(l, 1) != 0;
+    SUPPRESS_MESSAGES.store(suppress, Ordering::Relaxed);
+    0
+}
 
 #[gmod_close]
 fn close(_l: LuaState) -> i32 {
